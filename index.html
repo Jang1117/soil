@@ -6,9 +6,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         html, body {height:100%; margin:0; padding:0; font-family: Arial, sans-serif;}
-        #map {height:100vh; width:100%;}
+        #map-container {
+            display: flex;
+            height: 100vh;
+            width: 100%;
+        }
+        #map-left, #map-right {height:100%; width:50%;}
+        #map-left {border-right: 3px solid black;}
         
-        #legend {
+        #legend-left {
             position: fixed;
             top: 80px; /* 지도 컨트롤 버튼 아래로 이동 */
             left: 20px;
@@ -20,7 +26,19 @@
             font-size: 12px;
             max-width: 280px;
         }
-        #legend h3 {margin: 0 0 10px 0; font-size: 14px; color: #333;}
+        #legend-right {
+            position: fixed;
+            top: 80px; /* 지도 컨트롤 버튼 아래로 이동 */
+            left: calc(50% + 20px);
+            background: rgba(255,255,255,0.95);
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.3);
+            z-index: 1000;
+            font-size: 12px;
+            max-width: 280px;
+        }
+        #legend-left h3, #legend-right h3 {margin: 0 0 10px 0; font-size: 14px; color: #333;}
         
         .legend-item {
             display: flex;
@@ -133,22 +151,21 @@
 <body>
     <div id="loading">데이터를 불러오는 중...</div>
     
-    <div id="legend">
-        <h3 id="legend-title">pH 범위</h3>
-        <div id="legend-content">
+    <div id="legend-left">
+        <h3 id="legend-title-left">pH 범위</h3>
+        <div id="legend-content-left">
+            <!-- 동적으로 생성됩니다 -->
+        </div>
+    </div>
+    
+    <div id="legend-right">
+        <h3 id="legend-title-right">pH 범위</h3>
+        <div id="legend-content-right">
             <!-- 동적으로 생성됩니다 -->
         </div>
     </div>
     
     <div class="controls">
-        <div class="control-group">
-            <label for="depth-select">토층 깊이:</label>
-            <select id="depth-select">
-                <option value="depth_0_20">0-20cm</option>
-                <option value="depth_20_40">20-40cm</option>
-            </select>
-        </div>
-        
         <div class="control-group">
             <label for="parameter-select">측정 항목:</label>
             <select id="parameter-select">
@@ -172,22 +189,20 @@
                 <option value="P2O5_total">전인산 P2O5 mg/kg</option>
             </select>
         </div>
-        
-        <!-- <div class="control-group">
-            <button onclick="showHome()">전체 보기</button>
-            <button onclick="updateVisualization()">업데이트</button>
-        </div> -->
     </div>
     
-    <div id="map"></div>
+    <div id="map-container">
+        <div id="map-left"></div>
+        <div id="map-right"></div>
+    </div>
 
     <script>
-        let map;
-        let markers = [];
+        let mapLeft, mapRight;
+        let markersLeft = [];
+        let markersRight = [];
         let soilData = [];
-        let currentDepth = 'depth_0_20';
         let currentParameter = 'pH';
-        let infoWindow;
+        let infoWindowLeft, infoWindowRight;
 
         // 토양 매개변수 기준표
         const soilCriteria = {
@@ -432,14 +447,16 @@
             return {color: "gray", criteria: "범위 외"};
         }
 
-        function updateLegend(parameter) {
-            const title = document.getElementById('legend-title');
-            const content = document.getElementById('legend-content');
+        function updateLegend(parameter, side) {
+            const titleId = side === 'left' ? 'legend-title-left' : 'legend-title-right';
+            const contentId = side === 'left' ? 'legend-content-left' : 'legend-content-right';
+            const title = document.getElementById(titleId);
+            const content = document.getElementById(contentId);
             
             const criteria = soilCriteria[parameter];
             if (!criteria) return;
             
-            const depthLabel = currentDepth === 'depth_0_20' ? '0-20cm' : '20-40cm';
+            const depthLabel = side === 'left' ? '0-20cm' : '20-40cm';
             title.textContent = `${criteria.name} (${criteria.unit}) - ${depthLabel}`;
             
             let legendHTML = '';
@@ -464,13 +481,17 @@
             content.innerHTML = legendHTML;
         }
 
-        function updateMarkers() {
+        function updateMarkers(side) {
+            const map = side === 'left' ? mapLeft : mapRight;
+            const markers = side === 'left' ? markersLeft : markersRight;
+            const depth = side === 'left' ? 'depth_0_20' : 'depth_20_40';
+
             // 기존 마커 제거
             markers.forEach(m => m.setMap(null));
-            markers = [];
+            markers.splice(0); // 배열 비우기
 
             soilData.forEach(sample => {
-                const value = getParameterValue(sample, currentDepth, currentParameter);
+                const value = getParameterValue(sample, depth, currentParameter);
                 if (value === null) return; // 값이 없으면 스킵
 
                 const colorAndCriteria = getColorAndCriteriaForParameter(value, currentParameter);
@@ -497,7 +518,7 @@
 
                 // 클릭 이벤트 - 상세 정보 표시
                 marker.addListener("click", () => {
-                    showSampleInfo(sample, marker);
+                    showSampleInfo(sample, marker, side, depth);
                 });
 
                 markers.push(marker);
@@ -521,9 +542,11 @@
             return `background-color: ${bgColor};`;
         }
 
-        function showSampleInfo(sample, marker) {
-            const depthLabel = currentDepth === 'depth_0_20' ? '0-20cm' : '20-40cm';
-            const data = sample[currentDepth];
+        function showSampleInfo(sample, marker, side, depth) {
+            const depthLabel = depth === 'depth_0_20' ? '0-20cm' : '20-40cm';
+            const data = sample[depth];
+            const map = side === 'left' ? mapLeft : mapRight;
+            let infoWindow = side === 'left' ? infoWindowLeft : infoWindowRight;
             
             if (!data) {
                 const content = `
@@ -538,6 +561,8 @@
                 if (infoWindow) infoWindow.close();
                 infoWindow = new google.maps.InfoWindow({content: content});
                 infoWindow.open(map, marker);
+                if (side === 'left') infoWindowLeft = infoWindow;
+                else infoWindowRight = infoWindow;
                 return;
             }
             
@@ -582,30 +607,42 @@
             });
             
             infoWindow.open(map, marker);
+            if (side === 'left') infoWindowLeft = infoWindow;
+            else infoWindowRight = infoWindow;
         }
 
         function updateVisualization() {
-            currentDepth = document.getElementById('depth-select').value;
             currentParameter = document.getElementById('parameter-select').value;
-            updateLegend(currentParameter);
-            updateMarkers();
+            updateLegend(currentParameter, 'left');
+            updateLegend(currentParameter, 'right');
+            updateMarkers('left');
+            updateMarkers('right');
         }
 
         function showHome() {
-            map.setCenter(calculateCenter());
-            map.setZoom(10);
+            const center = calculateCenter();
+            mapLeft.setCenter(center);
+            mapLeft.setZoom(10);
+            mapRight.setCenter(center);
+            mapRight.setZoom(10);
         }
 
         // 구글 지도 초기화
         window.initMap = function() {
-            map = new google.maps.Map(document.getElementById("map"), {
-                center: calculateCenter(),
+            const center = calculateCenter();
+            mapLeft = new google.maps.Map(document.getElementById("map-left"), {
+                center: center,
+                zoom: 12,
+                mapTypeId: google.maps.MapTypeId.ROADMAP
+            });
+
+            mapRight = new google.maps.Map(document.getElementById("map-right"), {
+                center: center,
                 zoom: 12,
                 mapTypeId: google.maps.MapTypeId.ROADMAP
             });
 
             // 파라미터 변경 이벤트
-            document.getElementById('depth-select').addEventListener('change', updateVisualization);
             document.getElementById('parameter-select').addEventListener('change', updateVisualization);
             
             // 데이터 로드
