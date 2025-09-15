@@ -2,169 +2,65 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>Soil Data Map</title>
+    <title>Soil Data Map + Rivers (Overpass)</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         html, body {height:100%; margin:0; padding:0; font-family: Arial, sans-serif;}
-        #map-container {
-            display: flex;
-            height: 100vh;
-            width: 100%;
-        }
-        #map-left, #map-right {height:100%; width:50%;}
-        #map-left {border-right: 3px solid black;}
-        
-        #legend-left {
-            position: fixed;
-            top: 80px; /* 지도 컨트롤 버튼 아래로 이동 */
-            left: 20px;
-            background: rgba(255,255,255,0.95);
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 2px 15px rgba(0,0,0,0.3);
-            z-index: 1000;
-            font-size: 12px;
-            max-width: 280px;
-        }
-        #legend-right {
-            position: fixed;
-            top: 80px; /* 지도 컨트롤 버튼 아래로 이동 */
-            left: calc(50% + 20px);
-            background: rgba(255,255,255,0.95);
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 2px 15px rgba(0,0,0,0.3);
-            z-index: 1000;
-            font-size: 12px;
-            max-width: 280px;
-        }
-        #legend-left h3, #legend-right h3 {margin: 0 0 10px 0; font-size: 14px; color: #333;}
-        
-        .legend-item {
-            display: flex;
-            align-items: center;
-            margin: 3px 0;
-        }
-        .legend-color {
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            margin-right: 8px;
-            border: 1px solid #333;
-            flex-shrink: 0;
-        }
-        .legend-text {
-            font-size: 11px;
-        }
+        #map-container { display:flex; height:100vh; width:100%; }
+        #map-left, #map-right { height:100%; width:50%; }
+        #map-left { border-right:3px solid black; }
 
-        .controls {
-            position: fixed;
-            top: 80px;
-            right: 20px;
-            background: rgba(255,255,255,0.95);
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 2px 15px rgba(0,0,0,0.3);
-            z-index: 1000;
-            min-width: 250px;
+        #legend-left, #legend-right, .controls, #loading {
+          position: fixed; background: rgba(255,255,255,0.95); padding: 15px; border-radius: 8px;
+          box-shadow: 0 2px 15px rgba(0,0,0,0.3); z-index: 1000; font-size: 12px;
         }
-        
-        .control-group {
-            margin-bottom: 15px;
-        }
-        .control-group:last-child {
-            margin-bottom: 0;
-        }
-        
-        .control-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: #333;
-            font-size: 13px;
-        }
-        
-        select, button {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-size: 14px;
-            background: white;
-        }
-        
-        button {
-            background: #4CAF50;
-            color: white;
-            border: none;
-            cursor: pointer;
-            margin-top: 5px;
-        }
-        
-        button:hover {
-            background: #45a049;
-        }
+        #legend-left { top:80px; left:20px; max-width:280px; }
+        #legend-right { top:80px; left: calc(50% + 20px); max-width:280px; }
+        #legend-left h3, #legend-right h3 { margin:0 0 10px 0; font-size:14px; color:#333; }
+        .legend-item { display:flex; align-items:center; margin:3px 0; }
+        .legend-color { width:16px; height:16px; border-radius:50%; margin-right:8px; border:1px solid #333; flex-shrink:0; }
+        .legend-text { font-size:11px; }
 
-        #loading {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(255,255,255,0.9);
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 15px rgba(0,0,0,0.3);
-            z-index: 2000;
-        }
+        .controls { top:80px; right:20px;   width: 250px; }
+        .control-group { margin-bottom:15px; }
+        .control-group:last-child { margin-bottom:0; }
+        .control-group label { display:block; margin-bottom:5px; font-weight:bold; color:#333; font-size:13px; }
+        select, button, input[type="number"] { width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; font-size:14px; background:white; }
+        button { background:#4CAF50; color:white; border:none; cursor:pointer; margin-top:5px; }
+        button:hover { background:#45a049; }
 
-        .info-window {
-            max-width: 350px;
-        }
-        .info-window h4 {
-            margin: 0 0 10px 0;
-            color: #333;
-        }
-        .info-window table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 12px;
-        }
-        .info-window th, .info-window td {
-            padding: 4px 8px;
-            text-align: left;
-            border-bottom: 1px solid #eee;
-        }
-        .info-window th {
-            background: #f5f5f5;
-            font-weight: bold;
-        }
-        .criteria-badge {
-            display: inline-block;
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-size: 10px;
-            font-weight: bold;
-            color: white;
+		#radius-input {
+		  width: 230px;   /* 원하는 폭 */
+		  display: inline-block;
+		}
+        #loading { top:50%; left:50%; transform:translate(-50%,-50%); z-index:2000; }
+
+        .info-window { max-width:350px; }
+        .info-window h4 { margin:0 0 10px 0; color:#333; }
+        .info-window table { width:100%; border-collapse:collapse; font-size:12px; }
+        .info-window th, .info-window td { padding:4px 8px; text-align:left; border-bottom:1px solid #eee; }
+        .info-window th { background:#f5f5f5; font-weight:bold; }
+        .criteria-badge { display:inline-block; padding:2px 6px; border-radius:3px; font-size:10px; font-weight:bold; color:white; }
+        .badge {
+          position: fixed; top: 56px; left: 50%; transform: translateX(-50%);
+          background: rgba(255,255,255,0.95); padding: 6px 10px; border-radius: 999px;
+          box-shadow: 0 2px 10px rgba(0,0,0,0.2); z-index:1000; font-size:12px;
         }
     </style>
 </head>
 <body>
     <div id="loading">데이터를 불러오는 중...</div>
-    
+    <div class="badge">반경 내 강/하천 레이어: Overpass API</div>
+
     <div id="legend-left">
         <h3 id="legend-title-left">pH 범위</h3>
-        <div id="legend-content-left">
-            <!-- 동적으로 생성됩니다 -->
-        </div>
+        <div id="legend-content-left"></div>
     </div>
-    
     <div id="legend-right">
         <h3 id="legend-title-right">pH 범위</h3>
-        <div id="legend-content-right">
-            <!-- 동적으로 생성됩니다 -->
-        </div>
+        <div id="legend-content-right"></div>
     </div>
-    
+
     <div class="controls">
         <div class="control-group">
             <label for="parameter-select">측정 항목:</label>
@@ -189,8 +85,14 @@
                 <option value="P2O5_total">전인산 P2O5 mg/kg</option>
             </select>
         </div>
+        <div class="control-group">
+            <label for="radius-input">강/하천 검색 반경 (m):</label>
+            <input id="radius-input" type="number" value="5000" min="500" step="500" />
+            <button id="reload-rivers-btn">강/하천 다시 불러오기</button>
+            <button id="clear-rivers-btn" style="background:#888">강/하천 숨기기</button>
+        </div>
     </div>
-    
+
     <div id="map-container">
         <div id="map-left"></div>
         <div id="map-right"></div>
@@ -204,213 +106,154 @@
         let currentParameter = 'pH';
         let infoWindowLeft, infoWindowRight;
 
+        // ★ Overpass 강/하천 레이어 컨테이너
+        let riverPolylinesLeft = [];
+        let riverPolylinesRight = [];
+        const RADIUS_DEFAULT = 5000;
+		// ★ 추가: 강/하천 선 색상
+		const RIVER_COLOR = '#00BFFF'; // 밝은 파랑 (DeepSkyBlue)
+
         // 토양 매개변수 기준표
         const soilCriteria = {
-            'C_organik': {
-                name: '유기탄소',
-                unit: '%',
-                ranges: [
-                    {min: 0, max: 1.00, label: '매우 낮음', color: '#8B0000'},
-                    {min: 1.00, max: 2.00, label: '낮음', color: 'red'},
-                    {min: 2.01, max: 3.00, label: '보통', color: 'orange'},
-                    {min: 3.01, max: 5.00, label: '높음', color: 'green'},
-                    {min: 5.01, max: Infinity, label: '매우 높음', color: 'blue'}
-                ]
-            },
-            'N_total': {
-                name: '전질소',
-                unit: '%',
-                ranges: [
-                    {min: 0, max: 0.10, label: '매우 낮음', color: '#8B0000'},
-                    {min: 0.10, max: 0.20, label: '낮음', color: 'red'},
-                    {min: 0.21, max: 0.50, label: '보통', color: 'orange'},
-                    {min: 0.51, max: 0.75, label: '높음', color: 'green'},
-                    {min: 0.76, max: Infinity, label: '매우 높음', color: 'blue'}
-                ]
-            },
-            'P2O5_tersedia': {
-                name: '유효인산',
-                unit: 'mg/kg',
-                ranges: [
-                    {min: 0, max: 10, label: '매우 낮음', color: '#8B0000'},
-                    {min: 10, max: 20, label: '낮음', color: 'red'},
-                    {min: 21, max: 40, label: '보통', color: 'orange'},
-                    {min: 41, max: 60, label: '높음', color: 'green'},
-                    {min: 61, max: Infinity, label: '매우 높음', color: 'blue'}
-                ]
-            },
-            'Kalium K': {
-                name: '칼륨',
-                unit: 'cmol/kg',
-                ranges: [
-                    {min: 0, max: 0.1, label: '매우 낮음', color: '#8B0000'},
-                    {min: 0.1, max: 0.29, label: '낮음', color: 'red'},
-                    {min: 0.3, max: 0.59, label: '보통', color: 'orange'},
-                    {min: 0.6, max: 1, label: '높음', color: 'green'},
-                    {min: 1.01, max: Infinity, label: '매우 높음', color: 'blue'}
-                ]
-            },
-            'Natrium Na': {
-                name: '나트륨',
-                unit: 'cmol/kg',
-                ranges: [
-                    {min: 0, max: 0.1, label: '매우 낮음', color: '#8B0000'},
-                    {min: 0.1, max: 0.39, label: '낮음', color: 'red'},
-                    {min: 0.4, max: 0.79, label: '보통', color: 'orange'},
-                    {min: 0.8, max: 1, label: '높음', color: 'green'},
-                    {min: 1.01, max: Infinity, label: '매우 높음', color: 'blue'}
-                ]
-            },
-            'Calcium Ca': {
-                name: '칼슘',
-                unit: 'cmol/kg',
-                ranges: [
-                    {min: 0, max: 2, label: '매우 낮음', color: '#8B0000'},
-                    {min: 2, max: 5.99, label: '낮음', color: 'red'},
-                    {min: 6, max: 10.99, label: '보통', color: 'orange'},
-                    {min: 11, max: 20, label: '높음', color: 'green'},
-                    {min: 20.01, max: Infinity, label: '매우 높음', color: 'blue'}
-                ]
-            },
-            'Magnesium Mg': {
-                name: '마그네슘',
-                unit: 'cmol/kg',
-                ranges: [
-                    {min: 0, max: 0.4, label: '매우 낮음', color: '#8B0000'},
-                    {min: 0.4, max: 1.09, label: '낮음', color: 'red'},
-                    {min: 1.1, max: 2.09, label: '보통', color: 'orange'},
-                    {min: 2.1, max: 8, label: '높음', color: 'green'},
-                    {min: 8.01, max: Infinity, label: '매우 높음', color: 'blue'}
-                ]
-            },
-            'KTK': {
-                name: '양이온교환용량',
-                unit: 'cmol/kg',
-                ranges: [
-                    {min: 0, max: 5, label: '매우 낮음', color: '#8B0000'},
-                    {min: 5, max: 16, label: '낮음', color: 'red'},
-                    {min: 17, max: 24, label: '보통', color: 'orange'},
-                    {min: 24, max: 40, label: '높음', color: 'green'},
-                    {min: 40.01, max: Infinity, label: '매우 높음', color: 'blue'}
-                ]
-            },
-            'Kejenuhan_Basa': {
-                name: '염기포화도',
-                unit: '%',
-                ranges: [
-                    {min: 0, max: 20, label: '매우 낮음', color: '#8B0000'},
-                    {min: 20, max: 35, label: '낮음', color: 'red'},
-                    {min: 36, max: 50, label: '보통', color: 'orange'},
-                    {min: 51, max: 70, label: '높음', color: 'green'},
-                    {min: 70.01, max: Infinity, label: '매우 높음', color: 'blue'}
-                ]
-            },
-            'Tembaga Cu': {
-                name: '구리',
-                unit: 'mg/kg',
-                ranges: [
-                    {min: 0, max: 0.2, label: '낮음', color: 'green'},
-                    {min: 0.2, max: 0.2, label: '보통', color: 'orange'},
-                    {min: 0.201, max: Infinity, label: '높음', color: 'red'}
-                ]
-            },
-            'Besi Fe': {
-                name: '철',
-                unit: 'mg/kg',
-                ranges: [
-                    {min: 0, max: 2.5, label: '낮음', color: 'green'},
-                    {min: 2.5, max: 4.5, label: '보통', color: 'orange'},
-                    {min: 4.51, max: Infinity, label: '높음', color: 'red'}
-                ]
-            },
-            'Mangan Mn': {
-                name: '망간',
-                unit: 'mg/kg',
-                ranges: [
-                    {min: 0, max: 1, label: '낮음', color: 'green'},
-                    {min: 1, max: 1, label: '보통', color: 'orange'},
-                    {min: 1.01, max: Infinity, label: '높음', color: 'red'}
-                ]
-            },
-            'Seng Zn': {
-                name: '아연',
-                unit: 'mg/kg',
-                ranges: [
-                    {min: 0, max: 0.5, label: '낮음', color: 'green'},
-                    {min: 0.5, max: 1.0, label: '보통', color: 'orange'},
-                    {min: 1.01, max: Infinity, label: '높음', color: 'red'}
-                ]
-            },
-            'K2O': {
-                name: 'K2O',
-                unit: '%',
-                ranges: [
-                    {min: 0, max: 0.03, label: '매우 낮음', color: '#8B0000'},
-                    {min: 0.03, max: 0.06, label: '낮음', color: 'red'},
-                    {min: 0.07, max: 0.11, label: '보통', color: 'orange'},
-                    {min: 0.12, max: 0.2, label: '높음', color: 'green'},
-                    {min: 0.21, max: Infinity, label: '매우 높음', color: 'blue'}
-                ]
-            },
-            'Al-dd': {
-                name: 'Al-dd',
-                unit: 'cmol/kg',
-                ranges: [
-                    {min: 0, max: 15, label: '매우 낮음', color: '#8B0000'},
-                    {min: 15, max: 20, label: '낮음', color: 'red'},
-                    {min: 21, max: 30, label: '보통', color: 'orange'},
-                    {min: 31, max: 60, label: '높음', color: 'green'},
-                    {min: 60.01, max: Infinity, label: '매우 높음', color: 'blue'}
-                ]
-            },
-            'N_tersedia_NH4': {
-                name: '유효질소 NH4',
-                unit: 'mg/kg',
-                ranges: [
-                    {min: 0, max: 10, label: '매우 낮음', color: '#8B0000'},
-                    {min: 10, max: 30, label: '낮음', color: 'red'},
-                    {min: 31, max: 60, label: '보통', color: 'orange'},
-                    {min: 61, max: 100, label: '높음', color: 'green'},
-                    {min: 101, max: Infinity, label: '매우 높음', color: 'blue'}
-                ]
-            },
-            'P2O5_total': {
-                name: '전인산 P2O5',
-                unit: 'mg/kg',
-                ranges: [
-                    {min: 0, max: 50, label: '매우 낮음', color: '#8B0000'},
-                    {min: 50, max: 100, label: '낮음', color: 'red'},
-                    {min: 101, max: 200, label: '보통', color: 'orange'},
-                    {min: 201, max: 400, label: '높음', color: 'green'},
-                    {min: 401, max: Infinity, label: '매우 높음', color: 'blue'}
-                ]
-            },
-            'pH': {
-                name: 'pH',
-                unit: '',
-                ranges: [
-                    {min: 0, max: 4.0, label: '매우 산성', color: 'red'},
-                    {min: 4.0, max: 4.5, label: '중간 산성', color: 'orange'},
-                    {min: 4.5, max: 5.5, label: '약산성', color: 'green'},
-                    {min: 5.5, max: Infinity, label: '중성 근처', color: 'blue'}
-                ]
-            }
+            'C_organik': { name:'유기탄소', unit:'%', ranges:[
+                {min:0,max:1.00,label:'매우 낮음',color:'#8B0000'},
+                {min:1.00,max:2.00,label:'낮음',color:'red'},
+                {min:2.01,max:3.00,label:'보통',color:'orange'},
+                {min:3.01,max:5.00,label:'높음',color:'green'},
+                {min:5.01,max:Infinity,label:'매우 높음',color:'blue'}
+            ]},
+            'N_total': { name:'전질소', unit:'%', ranges:[
+                {min:0,max:0.10,label:'매우 낮음',color:'#8B0000'},
+                {min:0.10,max:0.20,label:'낮음',color:'red'},
+                {min:0.21,max:0.50,label:'보통',color:'orange'},
+                {min:0.51,max:0.75,label:'높음',color:'green'},
+                {min:0.76,max:Infinity,label:'매우 높음',color:'blue'}
+            ]},
+            'P2O5_tersedia': { name:'유효인산', unit:'mg/kg', ranges:[
+                {min:0,max:10,label:'매우 낮음',color:'#8B0000'},
+                {min:10,max:20,label:'낮음',color:'red'},
+                {min:21,max:40,label:'보통',color:'orange'},
+                {min:41,max:60,label:'높음',color:'green'},
+                {min:61,max:Infinity,label:'매우 높음',color:'blue'}
+            ]},
+            'Kalium K': { name:'칼륨', unit:'cmol/kg', ranges:[
+                {min:0,max:0.1,label:'매우 낮음',color:'#8B0000'},
+                {min:0.1,max:0.29,label:'낮음',color:'red'},
+                {min:0.3,max:0.59,label:'보통',color:'orange'},
+                {min:0.6,max:1,label:'높음',color:'green'},
+                {min:1.01,max:Infinity,label:'매우 높음',color:'blue'}
+            ]},
+            'Natrium Na': { name:'나트륨', unit:'cmol/kg', ranges:[
+                {min:0,max:0.1,label:'매우 낮음',color:'#8B0000'},
+                {min:0.1,max:0.39,label:'낮음',color:'red'},
+                {min:0.4,max:0.79,label:'보통',color:'orange'},
+                {min:0.8,max:1,label:'높음',color:'green'},
+                {min:1.01,max:Infinity,label:'매우 높음',color:'blue'}
+            ]},
+            'Calcium Ca': { name:'칼슘', unit:'cmol/kg', ranges:[
+                {min:0,max:2,label:'매우 낮음',color:'#8B0000'},
+                {min:2,max:5.99,label:'낮음',color:'red'},
+                {min:6,max:10.99,label:'보통',color:'orange'},
+                {min:11,max:20,label:'높음',color:'green'},
+                {min:20.01,max:Infinity,label:'매우 높음',color:'blue'}
+            ]},
+            'Magnesium Mg': { name:'마그네슘', unit:'cmol/kg', ranges:[
+                {min:0,max:0.4,label:'매우 낮음',color:'#8B0000'},
+                {min:0.4,max:1.09,label:'낮음',color:'red'},
+                {min:1.1,max:2.09,label:'보통',color:'orange'},
+                {min:2.1,max:8,label:'높음',color:'green'},
+                {min:8.01,max:Infinity,label:'매우 높음',color:'blue'}
+            ]},
+            'KTK': { name:'양이온교환용량', unit:'cmol/kg', ranges:[
+                {min:0,max:5,label:'매우 낮음',color:'#8B0000'},
+                {min:5,max:16,label:'낮음',color:'red'},
+                {min:17,max:24,label:'보통',color:'orange'},
+                {min:24,max:40,label:'높음',color:'green'},
+                {min:40.01,max:Infinity,label:'매우 높음',color:'blue'}
+            ]},
+            'Kejenuhan_Basa': { name:'염기포화도', unit:'%', ranges:[
+                {min:0,max:20,label:'매우 낮음',color:'#8B0000'},
+                {min:20,max:35,label:'낮음',color:'red'},
+                {min:36,max:50,label:'보통',color:'orange'},
+                {min:51,max:70,label:'높음',color:'green'},
+                {min:70.01,max:Infinity,label:'매우 높음',color:'blue'}
+            ]},
+            'Tembaga Cu': { name:'구리', unit:'mg/kg', ranges:[
+                {min:0,max:0.2,label:'낮음',color:'red'},
+                {min:0.2,max:0.2,label:'보통',color:'orange'},
+                {min:0.201,max:Infinity,label:'높음',color:'green'}
+            ]},
+            'Besi Fe': { name:'철', unit:'mg/kg', ranges:[
+                {min:0,max:2.5,label:'낮음',color:'red'},
+                {min:2.5,max:4.5,label:'보통',color:'orange'},
+                {min:4.51,max:Infinity,label:'높음',color:'green'}
+            ]},
+            'Mangan Mn': { name:'망간', unit:'mg/kg', ranges:[
+                {min:0,max:1,label:'낮음',color:'red'},
+                {min:1,max:1,label:'보통',color:'orange'},
+                {min:1.01,max:Infinity,label:'높음',color:'green'}
+            ]},
+            'Seng Zn': { name:'아연', unit:'mg/kg', ranges:[
+                {min:0,max:0.5,label:'낮음',color:'red'},
+                {min:0.5,max:1.0,label:'보통',color:'orange'},
+                {min:1.01,max:Infinity,label:'높음',color:'green'}
+            ]},
+            'K2O': { name:'K2O', unit:'%', ranges:[
+                {min:0,max:0.03,label:'매우 낮음',color:'#8B0000'},
+                {min:0.03,max:0.06,label:'낮음',color:'red'},
+                {min:0.07,max:0.11,label:'보통',color:'orange'},
+                {min:0.12,max:0.2,label:'높음',color:'green'},
+                {min:0.21,max:Infinity,label:'매우 높음',color:'blue'}
+            ]},
+            'Al-dd': { name:'Al-dd', unit:'cmol/kg', ranges:[
+                {min:0,max:15,label:'매우 낮음',color:'#8B0000'},
+                {min:15,max:20,label:'낮음',color:'red'},
+                {min:21,max:30,label:'보통',color:'orange'},
+                {min:31,max:60,label:'높음',color:'green'},
+                {min:60.01,max:Infinity,label:'매우 높음',color:'blue'}
+            ]},
+            'N_tersedia_NH4': { name:'유효질소 NH4', unit:'mg/kg', ranges:[
+                {min:0,max:10,label:'매우 낮음',color:'#8B0000'},
+                {min:10,max:30,label:'낮음',color:'red'},
+                {min:31,max:60,label:'보통',color:'orange'},
+                {min:61,max:100,label:'높음',color:'green'},
+                {min:101,max:Infinity,label:'매우 높음',color:'blue'}
+            ]},
+            'P2O5_total': { name:'전인산 P2O5', unit:'mg/kg', ranges:[
+                {min:0,max:50,label:'매우 낮음',color:'#8B0000'},
+                {min:50,max:100,label:'낮음',color:'red'},
+                {min:101,max:200,label:'보통',color:'orange'},
+                {min:201,max:400,label:'높음',color:'green'},
+                {min:401,max:Infinity,label:'매우 높음',color:'blue'}
+            ]},
+            'pH': { name:'pH', unit:'', ranges:[
+                {min:0,max:4.0,label:'매우 산성',color:'red'},
+                {min:4.0,max:4.5,label:'중간 산성',color:'orange'},
+                {min:4.5,max:5.5,label:'약산성',color:'green'},
+                {min:5.5,max:Infinity,label:'중성 근처',color:'blue'}
+            ]}
         };
 
         // JSON 파일 로드
         async function loadSoilData() {
             try {
                 const response = await fetch('soil_full_no_texture.json');
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 soilData = await response.json();
                 document.getElementById('loading').style.display = 'none';
                 console.log(`${soilData.length} 개의 토양 샘플을 로드했습니다.`);
+
+                // 시각화 업데이트
                 updateVisualization();
+
+                // ★ 토양 데이터 중심 기준으로 강/하천 불러오기
+                const center = calculateCenter();
+                const radius = getRadiusMeters();
+                await reloadRivers(center, radius);
             } catch (error) {
                 console.error('데이터 로드 실패:', error);
-                document.getElementById('loading').innerHTML = '데이터 로드에 실패했습니다.<br>soil_full_no_texture.json 파일이 있는지 확인해주세요.';
+                document.getElementById('loading').innerHTML =
+                  '데이터 로드에 실패했습니다.<br>soil_full_no_texture.json 파일이 있는지 확인해주세요.';
             }
         }
 
@@ -418,33 +261,22 @@
             if (soilData.length === 0) return {lat: -2.84, lng: 133.08};
             const valid = soilData.filter(s => s.lat && s.lng);
             if (valid.length === 0) return {lat: -2.84, lng: 133.08};
-            const sum = valid.reduce((acc, s) => ({
-                lat: acc.lat + s.lat,
-                lng: acc.lng + s.lng
-            }), {lat: 0, lng: 0});
-            return {lat: sum.lat / valid.length, lng: sum.lng / valid.length};
+            const sum = valid.reduce((acc, s) => ({ lat: acc.lat + s.lat, lng: acc.lng + s.lng }), {lat:0,lng:0});
+            return { lat: sum.lat / valid.length, lng: sum.lng / valid.length };
         }
 
         function getParameterValue(sample, depth, parameter) {
-            if (sample[depth] && sample[depth][parameter] !== undefined) {
-                return sample[depth][parameter];
-            }
+            if (sample[depth] && sample[depth][parameter] !== undefined) return sample[depth][parameter];
             return null;
         }
 
         function getColorAndCriteriaForParameter(value, parameter) {
-            if (value === null || !soilCriteria[parameter]) {
-                return {color: "gray", criteria: "데이터 없음"};
-            }
-            
+            if (value === null || !soilCriteria[parameter]) return {color:"gray", criteria:"데이터 없음"};
             const ranges = soilCriteria[parameter].ranges;
             for (let range of ranges) {
-                if (value >= range.min && value <= range.max) {
-                    return {color: range.color, criteria: range.label};
-                }
+                if (value >= range.min && value <= range.max) return {color: range.color, criteria: range.label};
             }
-            
-            return {color: "gray", criteria: "범위 외"};
+            return {color:"gray", criteria:"범위 외"};
         }
 
         function updateLegend(parameter, side) {
@@ -452,32 +284,27 @@
             const contentId = side === 'left' ? 'legend-content-left' : 'legend-content-right';
             const title = document.getElementById(titleId);
             const content = document.getElementById(contentId);
-            
+
             const criteria = soilCriteria[parameter];
             if (!criteria) return;
-            
+
             const depthLabel = side === 'left' ? '0-20cm' : '20-40cm';
             title.textContent = `${criteria.name} (${criteria.unit}) - ${depthLabel}`;
-            
+
             let legendHTML = '';
             criteria.ranges.forEach(range => {
                 let rangeText = '';
-                if (range.max === Infinity) {
-                    rangeText = `> ${range.min}`;
-                } else if (range.min === range.max) {
-                    rangeText = `${range.min}`;
-                } else {
-                    rangeText = `${range.min} - ${range.max}`;
-                }
-                
+                if (range.max === Infinity) rangeText = `> ${range.min}`;
+                else if (range.min === range.max) rangeText = `${range.min}`;
+                else rangeText = `${range.min} - ${range.max}`;
+
                 legendHTML += `
                     <div class="legend-item">
-                        <div class="legend-color" style="background-color: ${range.color};"></div>
+                        <div class="legend-color" style="background-color:${range.color};"></div>
                         <span class="legend-text">${rangeText} (${range.label})</span>
-                    </div>
-                `;
+                    </div>`;
             });
-            
+
             content.innerHTML = legendHTML;
         }
 
@@ -488,38 +315,24 @@
 
             // 기존 마커 제거
             markers.forEach(m => m.setMap(null));
-            markers.splice(0); // 배열 비우기
+            markers.splice(0);
 
             soilData.forEach(sample => {
                 const value = getParameterValue(sample, depth, currentParameter);
-                if (value === null) return; // 값이 없으면 스킵
+                if (value === null) return;
 
                 const colorAndCriteria = getColorAndCriteriaForParameter(value, currentParameter);
 
                 const marker = new google.maps.Marker({
                     position: {lat: sample.lat, lng: sample.lng},
-                    map: map,
-                    label: {
-                        text: value.toFixed(2),
-                        fontSize: "10px",
-                        fontWeight: "bold",
-                        color: "#fff"
-                    },
-                    icon: {
-                        path: google.maps.SymbolPath.CIRCLE,
-                        scale: 16,
-                        fillColor: colorAndCriteria.color,
-                        fillOpacity: 0.8,
-                        strokeWeight: 2,
-                        strokeColor: "#333"
-                    },
+                    map,
+                    label: { text: value.toFixed(2), fontSize:"10px", fontWeight:"bold", color:"#fff" },
+                    icon: { path: google.maps.SymbolPath.CIRCLE, scale:16, fillColor: colorAndCriteria.color,
+                            fillOpacity:0.8, strokeWeight:2, strokeColor:"#333" },
                     title: `Sample #${sample.no}: ${currentParameter} ${value} (${colorAndCriteria.criteria})`
                 });
 
-                // 클릭 이벤트 - 상세 정보 표시
-                marker.addListener("click", () => {
-                    showSampleInfo(sample, marker, side, depth);
-                });
+                marker.addListener("click", () => { showSampleInfo(sample, marker, side, depth); });
 
                 markers.push(marker);
             });
@@ -527,19 +340,11 @@
 
         function getCriteriaBadgeStyle(criteria) {
             const colorMap = {
-                '매우 낮음': '#8B0000',
-                '낮음': 'red',
-                '보통': 'orange',
-                '높음': 'green',
-                '매우 높음': 'blue',
-                '매우 산성': 'red',
-                '중간 산성': 'orange',
-                '약산성': 'green',
-                '중성 근처': 'blue'
+                '매우 낮음':'#8B0000','낮음':'red','보통':'orange','높음':'green','매우 높음':'blue',
+                '매우 산성':'red','중간 산성':'orange','약산성':'green','중성 근처':'blue'
             };
-            
             const bgColor = colorMap[criteria] || 'gray';
-            return `background-color: ${bgColor};`;
+            return `background-color:${bgColor};`;
         }
 
         function showSampleInfo(sample, marker, side, depth) {
@@ -547,7 +352,7 @@
             const data = sample[depth];
             const map = side === 'left' ? mapLeft : mapRight;
             let infoWindow = side === 'left' ? infoWindowLeft : infoWindowRight;
-            
+
             if (!data) {
                 const content = `
                     <div class="info-window">
@@ -555,33 +360,25 @@
                         <p><strong>위치:</strong> ${sample.lat.toFixed(6)}, ${sample.lng.toFixed(6)}</p>
                         <p><strong>토층:</strong> ${depthLabel}</p>
                         <p>이 토층의 데이터가 없습니다.</p>
-                    </div>
-                `;
-                
+                    </div>`;
                 if (infoWindow) infoWindow.close();
-                infoWindow = new google.maps.InfoWindow({content: content});
+                infoWindow = new google.maps.InfoWindow({content});
                 infoWindow.open(map, marker);
-                if (side === 'left') infoWindowLeft = infoWindow;
-                else infoWindowRight = infoWindow;
+                if (side === 'left') infoWindowLeft = infoWindow; else infoWindowRight = infoWindow;
                 return;
             }
-            
+
             let tableRows = '';
-            
             Object.keys(data).forEach(key => {
                 if (data[key] !== null && data[key] !== undefined) {
                     const colorAndCriteria = getColorAndCriteriaForParameter(data[key], key);
                     const unit = soilCriteria[key] ? soilCriteria[key].unit : '';
                     const badgeStyle = getCriteriaBadgeStyle(colorAndCriteria.criteria);
-                    
                     tableRows += `
                         <tr>
                             <th>${key} ${unit}</th>
-                            <td>${data[key]} 
-                                <span class="criteria-badge" style="${badgeStyle}">${colorAndCriteria.criteria}</span>
-                            </td>
-                        </tr>
-                    `;
+                            <td>${data[key]} <span class="criteria-badge" style="${badgeStyle}">${colorAndCriteria.criteria}</span></td>
+                        </tr>`;
                 }
             });
 
@@ -594,21 +391,12 @@
                         <tr><th>항목</th><th>값 및 평가</th></tr>
                         ${tableRows}
                     </table>
-                </div>
-            `;
+                </div>`;
 
-            if (infoWindow) {
-                infoWindow.close();
-            }
-            
-            infoWindow = new google.maps.InfoWindow({
-                content: content,
-                maxWidth: 400
-            });
-            
+            if (infoWindow) infoWindow.close();
+            infoWindow = new google.maps.InfoWindow({ content, maxWidth: 400 });
             infoWindow.open(map, marker);
-            if (side === 'left') infoWindowLeft = infoWindow;
-            else infoWindowRight = infoWindow;
+            if (side === 'left') infoWindowLeft = infoWindow; else infoWindowRight = infoWindow;
         }
 
         function updateVisualization() {
@@ -621,40 +409,123 @@
 
         function showHome() {
             const center = calculateCenter();
-            mapLeft.setCenter(center);
-            mapLeft.setZoom(10);
-            mapRight.setCenter(center);
-            mapRight.setZoom(10);
+            mapLeft.setCenter(center); mapLeft.setZoom(10);
+            mapRight.setCenter(center); mapRight.setZoom(10);
+        }
+
+        // ★★★ Overpass 유틸들 ★★★
+        function getRadiusMeters() {
+            const v = Number(document.getElementById('radius-input')?.value || RADIUS_DEFAULT);
+            return Number.isFinite(v) && v > 0 ? v : RADIUS_DEFAULT;
+        }
+
+        function buildOverpassQuery(center, radiusMeters) {
+            return `[out:json];
+(way(around:${radiusMeters},${center.lat},${center.lng})[waterway~"river|stream|canal"];);
+out geom;`;
+        }
+
+        async function fetchWaterways(center, radiusMeters) {
+            const query = buildOverpassQuery(center, radiusMeters);
+            const url = "https://overpass-api.de/api/interpreter";
+            const formData = new URLSearchParams();
+            formData.set("data", query);
+            const res = await fetch(url, { method: "POST", body: formData });
+            if (!res.ok) throw new Error("Overpass 요청 실패: " + res.status);
+            const json = await res.json();
+            const ways = (json.elements || []).filter(el => el.type === "way" && Array.isArray(el.geometry));
+            return ways;
+        }
+
+        function clearWaterways() {
+            riverPolylinesLeft.forEach(p => p.setMap(null));
+            riverPolylinesRight.forEach(p => p.setMap(null));
+            riverPolylinesLeft = [];
+            riverPolylinesRight = [];
+        }
+
+        function drawWaterwaysOnMaps(ways) {
+            if (!mapLeft || !mapRight) return;
+            clearWaterways();
+
+            let bounds = new google.maps.LatLngBounds();
+            ways.forEach(way => {
+                const path = way.geometry.map(pt => ({ lat: pt.lat, lng: pt.lon }));
+
+			const polyLeft = new google.maps.Polyline({
+			  map: mapLeft,
+			  path,
+			  strokeColor: RIVER_COLOR,   // ★ 추가
+			  strokeOpacity: 0.95,
+			  strokeWeight: 3
+			});
+			const polyRight = new google.maps.Polyline({
+			  map: mapRight,
+			  path,
+			  strokeColor: RIVER_COLOR,   // ★ 추가
+			  strokeOpacity: 0.95,
+			  strokeWeight: 3
+			});
+
+                riverPolylinesLeft.push(polyLeft);
+                riverPolylinesRight.push(polyRight);
+
+                path.forEach(p => bounds.extend(p));
+            });
+
+            if (ways.length > 0) {
+                // 데이터가 있으면 화면 자동 맞춤 (여백 32px)
+                mapLeft.fitBounds(bounds, 32);
+                mapRight.fitBounds(bounds, 32);
+            }
+        }
+
+        async function reloadRivers(center, radiusMeters) {
+            try {
+                document.getElementById('loading').style.display = 'block';
+                document.getElementById('loading').textContent = '강/하천 데이터를 불러오는 중...';
+                const ways = await fetchWaterways(center, radiusMeters);
+                console.log("불러온 선형 개수:", ways.length);
+                drawWaterwaysOnMaps(ways);
+            } catch (e) {
+                console.error(e);
+                alert("강/하천 데이터를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.");
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('loading').textContent = '데이터를 불러오는 중...';
+            }
         }
 
         // 구글 지도 초기화
         window.initMap = function() {
             const center = calculateCenter();
             mapLeft = new google.maps.Map(document.getElementById("map-left"), {
-                center: center,
-                zoom: 12,
-                mapTypeId: google.maps.MapTypeId.ROADMAP
+                center, zoom: 12, mapTypeId: google.maps.MapTypeId.ROADMAP
             });
-
             mapRight = new google.maps.Map(document.getElementById("map-right"), {
-                center: center,
-                zoom: 12,
-                mapTypeId: google.maps.MapTypeId.ROADMAP
+                center, zoom: 12, mapTypeId: google.maps.MapTypeId.ROADMAP
             });
 
-            // 파라미터 변경 이벤트
             document.getElementById('parameter-select').addEventListener('change', updateVisualization);
-            
+
+            // 강/하천 재로딩 버튼
+            document.getElementById('reload-rivers-btn').addEventListener('click', async () => {
+                const centerNow = calculateCenter(); // 필요 시 현재 지도 중심으로 바꿔도 됨: mapLeft.getCenter().toJSON()
+                const radius = getRadiusMeters();
+                await reloadRivers(centerNow, radius);
+            });
+            document.getElementById('clear-rivers-btn').addEventListener('click', clearWaterways);
+
             // 데이터 로드
             loadSoilData();
         };
 
         // 지도 API 로드
         const script = document.createElement("script");
+        // ⚠️ 반드시 본인 Google Maps API 키로 교체하세요.
         script.src = "https://maps.googleapis.com/maps/api/js?key=AIzaSyBKZ64N6aTmQLaU312nCqXeyrNa-lol2IQ&callback=initMap";
         script.async = true;
         document.head.appendChild(script);
     </script>
 </body>
 </html>
-
