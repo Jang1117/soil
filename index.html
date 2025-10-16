@@ -158,22 +158,22 @@
                 <option value="C_organik">유기탄소 (C_organik) %</option>
                 <option value="N_total">전질소 (N_total) %</option>
                 <option value="C_N_ratio">C/N 비</option>
-                <option value="P2O5_tersedia">유효인산 (P2O5_tersedia) mg/kg</option>
+                <option value="P2O5_tersedia">유효인산 (P2O5_tersedia) mg/100g</option>
                 <option value="Kalium K">칼륨 (K) cmol/kg</option>
-                <option value="Natrium Na">나트륨 (Na) cmol/kg</option>
-                <option value="Calcium Ca">칼슘 (Ca) cmol/kg</option>
-                <option value="Magnesium Mg">마그네슘 (Mg) cmol/kg</option>
-                <option value="KTK">양이온교환용량 (KTK) cmol/kg</option>
+                <option value="Natrium Na">나트륨 (Na) me/100g</option>
+                <option value="Calcium Ca">칼슘 (Ca) me/100g</option>
+                <option value="Magnesium Mg">마그네슘 (Mg) me/100g</option>
+                <option value="KTK">양이온교환용량 (KTK) me/100g</option>
                 <option value="Kejenuhan_Basa">염기포화도 %</option>
-                <option value="Tembaga Cu">구리 (Cu) mg/kg</option>
-                <option value="Besi Fe">철 (Fe) mg/kg</option>
-                <option value="Mangan Mn">망간 (Mn) mg/kg</option>
-                <option value="Seng Zn">아연 (Zn) mg/kg</option>
-                <option value="K2O">K2O %</option>
+                <option value="Tembaga Cu">구리 (Cu) mg/100g</option>
+                <option value="Besi Fe">철 (Fe) mg/100g</option>
+                <option value="Mangan Mn">망간 (Mn) mg/100g</option>
+                <option value="Seng Zn">아연 (Zn) mg/100g</option>
+                <option value="K2O">K2O mg/100g</option>
                 <option value="Al-dd">Al-dd cmol/kg</option>
-                <option value="N_tersedia_NH4">유효질소 NH4 mg/kg</option>
-                <option value="P2O5_total">전인산 P2O5 mg/kg</option>
-                <option value="Sulfur">황 (Sulfur) mg/kg</option>
+                <option value="N_tersedia_NH4">유효질소 NH4 mg/100g</option>
+                <option value="P2O5_total">전인산 P2O5 mg/100g</option>
+                <option value="Sulfur">황 (Sulfur) ppm</option>
             </select>
         </div>
         
@@ -230,7 +230,7 @@
             },
             'P2O5_tersedia': {
                 name: '유효인산',
-                unit: 'mg/kg',
+                unit: 'mg/100g',
                 ranges: [
                     {min: 0, max: 10, label: '매우 낮음', color: '#8B0000'},
                     {min: 10, max: 20, label: '낮음', color: 'red'},
@@ -252,7 +252,7 @@
             },
             'Natrium Na': {
                 name: '나트륨',
-                unit: 'cmol/kg',
+                unit: 'me/100g',
                 ranges: [
                     {min: 0, max: 0.1, label: '매우 낮음', color: '#8B0000'},
                     {min: 0.1, max: 0.39, label: '낮음', color: 'red'},
@@ -263,7 +263,7 @@
             },
             'Calcium Ca': {
                 name: '칼슘',
-                unit: 'cmol/kg',
+                unit: 'me/100g',
                 ranges: [
                     {min: 0, max: 2, label: '매우 낮음', color: '#8B0000'},
                     {min: 2, max: 5.99, label: '낮음', color: 'red'},
@@ -274,7 +274,7 @@
             },
             'Magnesium Mg': {
                 name: '마그네슘',
-                unit: 'cmol/kg',
+                unit: 'me/100g',
                 ranges: [
                     {min: 0, max: 0.4, label: '매우 낮음', color: '#8B0000'},
                     {min: 0.4, max: 1.09, label: '낮음', color: 'red'},
@@ -285,7 +285,7 @@
             },
             'KTK': {
                 name: '양이온교환용량',
-                unit: 'cmol/kg',
+                unit: 'me/100g',
                 ranges: [
                     {min: 0, max: 5, label: '매우 낮음', color: '#8B0000'},
                     {min: 5, max: 16, label: '낮음', color: 'red'},
@@ -307,7 +307,7 @@
             },
             'Tembaga Cu': {
                 name: '구리',
-                unit: 'mg/kg',
+                unit: 'mg/100g',
                 ranges: [
                     {min: 0, max: 0.2, label: '낮음', color: 'red'},
                     {min: 0.2, max: 0.2, label: '보통', color: 'orange'},
@@ -316,7 +316,7 @@
             },
             'Besi Fe': {
                 name: '철',
-                unit: 'mg/kg',
+                unit: 'mg/100g',
                 ranges: [
                     {min: 0, max: 2.5, label: '낮음', color: 'red'},
                     {min: 2.5, max: 4.5, label: '보통', color: 'orange'},
@@ -325,7 +325,7 @@
             },
             'Mangan Mn': {
                 name: '망간',
-                unit: 'mg/kg',
+                unit: 'mg/100g',
                 ranges: [
                     {min: 0, max: 1, label: '낮음', color: 'red'},
                     {min: 1, max: 1, label: '보통', color: 'orange'},
@@ -334,7 +334,7 @@
             },
             'Seng Zn': {
                 name: '아연',
-                unit: 'mg/kg',
+                unit: 'mg/100g',
                 ranges: [
                     {min: 0, max: 0.5, label: '낮음', color: 'red'},
                     {min: 0.5, max: 1.0, label: '보통', color: 'orange'},
@@ -343,7 +343,7 @@
             },
             'K2O': {
                 name: 'K2O',
-                unit: '%',
+                unit: 'mg/100g',
                 ranges: [
                     {min: 0, max: 0.03, label: '매우 낮음', color: '#8B0000'},
                     {min: 0.03, max: 0.06, label: '낮음', color: 'red'},
@@ -365,7 +365,7 @@
             },
             'N_tersedia_NH4': {
                 name: '유효질소 NH4',
-                unit: 'mg/kg',
+                unit: 'mg/100g',
                 ranges: [
                     {min: 0, max: 10, label: '매우 낮음', color: '#8B0000'},
                     {min: 10, max: 30, label: '낮음', color: 'red'},
@@ -397,7 +397,7 @@
             },
             'Sulfur': {
                 name: '황',
-                unit: 'mg/kg',
+                unit: 'ppm',
                 ranges: [
                     {min: 0, max: 10, label: '매우 낮음', color: '#8B0000'},
                     {min: 10, max: 20, label: '낮음', color: 'red'},
@@ -662,4 +662,5 @@
     </script>
 </body>
 </html>
+
 
